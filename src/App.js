@@ -1,9 +1,7 @@
 import './App.css';
 import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { FaSun, FaMoon } from 'react-icons/fa';
@@ -20,11 +18,9 @@ firebase.initializeApp({
   measurementId: "G-BWED5XC8ZM",
 });
 
-const auth = firebase.auth();
 const firestore = firebase.firestore();
 
 function App() {
-  const [user] = useAuthState(auth);
   const [darkMode, setDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) return savedTheme === "dark";
@@ -45,83 +41,8 @@ function App() {
           {darkMode ? <FaSun /> : <FaMoon />}
         </button>
       </header>
-      <main>{user ? <ChatRoom /> : <SignIn />}</main>
+      <main><ChatRoom /></main>
     </div>
-  );
-}
-
-function SignIn() {
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-
-  const handleEmailAuth = async (e) => {
-    e.preventDefault();
-    try {
-      let userCredential;
-      if (isRegistering) {
-        userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await userCredential.user.updateProfile({ displayName: name });
-      } else {
-        userCredential = await auth.signInWithEmailAndPassword(email, password);
-      }
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  const signInWithGoogle = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
-  };
-
-  return (
-    <div className="signin-container">
-      <form onSubmit={handleEmailAuth} className="email-auth-form">
-        {isRegistering && (
-          <input
-            type="text"
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        )}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">
-          {isRegistering ? 'Register' : 'Sign In'}
-        </button>
-        <p onClick={() => setIsRegistering(!isRegistering)}>
-          {isRegistering ? 'Already have an account? Sign In' : 'New here? Register'}
-        </p>
-      </form>
-
-      <button className="sign-in" onClick={signInWithGoogle}>
-        Sign in with Google
-      </button>
-    </div>
-  );
-}
-
-
-
-function SignOut() {
-  return auth.currentUser && (
-    <button className="sign-out" onClick={() => auth.signOut()}>Sign Out</button>
   );
 }
 
@@ -133,6 +54,8 @@ function ChatRoom() {
 
   const [formValue, setFormValue] = useState('');
   const [showPicker, setShowPicker] = useState(false);
+  const [name, setName] = useState(localStorage.getItem('username') || '');
+  const [hasSetName, setHasSetName] = useState(!!localStorage.getItem('username'));
 
   useEffect(() => {
     if (dummy.current) {
@@ -140,24 +63,50 @@ function ChatRoom() {
     }
   }, [messages]);
 
+  const handleSetName = () => {
+    const trimmedName = name.trim().replace(/\s{2,}/g, ' ');
+    if (trimmedName.length >= 2) {
+      localStorage.setItem('username', trimmedName);
+      setName(trimmedName);
+      setHasSetName(true);
+    } else {
+      alert("Please enter at least 2 characters for your name.");
+    }
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
-    const { uid, photoURL, displayName } = auth.currentUser;
+    if (!name.trim()) return;
 
     await messagesRef.add({
       text: formValue,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      uid,
-      photoURL,
-      displayName,
+      uid: name,
+      photoURL: '',
+      displayName: name,
     });
 
     setFormValue('');
   };
 
+  if (!hasSetName) {
+    return (
+      <div className="signin-container">
+        <input
+          className="name-input"
+          type="text"
+          placeholder="Enter your name"
+          value={name}
+          onChange={(e) => setName(e.target.value.replace(/\s{2,}/g, ' '))}
+        />
+        <button onClick={handleSetName}>Join Chat</button>
+      </div>
+    );
+  }
+
   return (
     <div className="chat-room">
-      <div className="welcome">Welcome to the chat!</div>
+      <div className="welcome">Welcome to the chat, {name}!</div>
       <div className="message-list">
         {messages && messages.map(msg => (
           <motion.div
@@ -166,7 +115,7 @@ function ChatRoom() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <ChatMessage message={msg} />
+            <ChatMessage message={msg} currentUser={name} />
           </motion.div>
         ))}
         <div ref={dummy}></div>
@@ -187,18 +136,17 @@ function ChatRoom() {
         )}
         <button type="submit" disabled={!formValue}>Send</button>
       </form>
-      <SignOut />
     </div>
   );
 }
 
-function ChatMessage({ message }) {
-  const { text, uid, photoURL, displayName, createdAt } = message;
-  const messageClass = uid === auth.currentUser.uid ? 'sent' : 'received';
+function ChatMessage({ message, currentUser }) {
+  const { text, uid, displayName, createdAt } = message;
+  const messageClass = uid === currentUser ? 'sent' : 'received';
 
   return (
     <div className={`message ${messageClass}`}>
-      <img src={photoURL || 'https://api.dicebear.com/6.x/initials/svg?seed=U'} alt="avatar" />
+      <img src={`https://api.dicebear.com/6.x/initials/svg?seed=${displayName}`} alt="avatar" />
       <div className="message-content">
         <p className="username">{displayName || 'Anonymous'}</p>
         <p className="text">{text}</p>
