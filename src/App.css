@@ -1,38 +1,272 @@
-.App {
-  text-align: center;
+/* Base Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+:root {
+  --bg-light: #f8f9fa;
+  --bg-dark: #1e1e2f;
+  --text-light: #212529;
+  --text-dark: #f1f3f5;
+  --accent: #4e89ff;
+  --sent-bg: #e0f7fa;
+  --received-bg: #d0d0d0;
+  --dark-sent-bg: #2e8b57;
+  --dark-received-bg: #444c56;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+html.light {
+  background-color: var(--bg-light);
+  color: var(--text-light);
 }
 
-.App-header {
-  background-color: #282c34;
+html.dark {
+  background-color: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+.app-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  padding: 1rem 2rem;
+  background-color: var(--accent);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.app-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.toggle-theme {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.chat-room {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.message-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-bottom: 1rem;
+}
+
+.message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.message img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+}
+
+.message.sent {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.message.sent img {
+  margin-right: 0;
+  margin-left: 0.75rem;
+}
+
+.message-content {
+  max-width: 70%;
+  background-color: var(--sent-bg);
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  position: relative;
+  word-wrap: break-word;
+}
+
+.dark .message-content {
+  background-color: var(--dark-received-bg);
+}
+
+.message.sent .message-content {
+  background-color: var(--accent);
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.dark .message.sent .message-content {
+  background-color: var(--dark-sent-bg);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.username {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: var(--accent);
+}
+
+.message.sent .username {
+  color: #ffffffcc;
+}
+
+.text {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.send-message-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid #ccc;
+}
+
+.send-message-form input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.send-message-form button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 20px;
+  background-color: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.emoji-btn {
+  background: none;
+  font-size: 1.5rem;
+}
+
+.emoji-picker {
+  position: absolute;
+  bottom: 80px;
+  z-index: 10;
+}
+
+.signin-container {
+  text-align: center;
+  margin-top: 20%;
+}
+
+.sign-in, .sign-out {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.welcome {
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  opacity: 0.8;
+}
+.email-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--bg);
+  padding: 24px;
+  border-radius: 12px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.email-auth-form input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.email-auth-form button {
+  padding: 10px;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.toggle-auth {
+  color: #0077cc;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.8rem;
+}
+.email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.email-form input {
+  padding: 8px;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 5px;
+}
+
+.email-form button {
+  padding: 8px;
+  background-color: var(--primary-color, #1976d2);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.email-form button:hover {
+  background-color: var(--primary-dark, #155a9c);
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
 }
