@@ -8,6 +8,40 @@ import { FaSun, FaMoon } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import EmojiPicker from 'emoji-picker-react';
 
+import { FirebaseX } from '@awesome-cordova-plugins/firebase-x';
+
+useEffect(() => {
+  FirebaseX.getToken().then(token => {
+    console.log("FCM Token:", token);
+    // You can store this in Firestore to send messages to users
+  });
+
+  FirebaseX.onMessageReceived().subscribe(data => {
+    console.log("Notification:", data);
+    alert("New message: " + data.body);
+  });
+}, []);
+
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp();
+
+exports.notifyNewMessage = functions.firestore
+  .document('messages/{msgId}')
+  .onCreate(async (snap, context) => {
+    const message = snap.data();
+
+    const payload = {
+      notification: {
+        title: `New message from ${message.displayName}`,
+        body: message.text,
+      },
+      topic: 'chat',
+    };
+
+    await admin.messaging().send(payload);
+  });
+
 firebase.initializeApp({
   apiKey: "AIzaSyCu1wmp7tKlqc0MUodlolYJj_mDGatUX64",
   authDomain: "chat-app-aecde.firebaseapp.com",
